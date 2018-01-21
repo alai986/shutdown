@@ -1,2 +1,4 @@
-# shutdown
-自动关机
+code是代码，用python2.7实现的
+需要配置一个txt文件，需要将其和运行程序放置在一个文件夹
+如果想利用windows的任务配置自动启动，则需要将txt放到windows/syswow64 目录下
+或者可以 将程序打开txt的路径变成绝对路径
