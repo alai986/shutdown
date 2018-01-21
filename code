@@ -1,0 +1,127 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+import poplib
+import os
+import time
+import wx
+import sys
+import re
+# import chardet
+from email.parser import Parser
+from email.header import decode_header
+from email.utils import parseaddr
+reload(sys)
+sys.setdefaultencoding('utf-8')
+# 编码转换函数
+def decode_str(s):
+    value, charset = decode_header(s)[0]
+    if charset:
+        value = value.decode(charset)
+    return value
+
+def get_Subject(msg):
+    #提取Subject信息
+    Subject = msg.get('Subject')
+    #编码转换
+    Subject = decode_str(Subject)
+    return Subject
+
+  # 检索邮件主题
+def judge(Subject):
+
+    str1=command1#获取关机指令
+    # print isinstance(str1,unicode)
+
+    if (Subject==str1.decode('gbk').encode('utf-8')):
+        return 1
+    else:
+        return 0
+
+def Check_Subject(host, user, password):
+    result = 0
+    try:
+
+        # print(pop_connect.getwelcome())
+        if ssl:
+            klass = poplib.POP3_SSL
+        else:
+            klass = poplib.POP3
+        pop_connect = klass(host=host, )
+        pop_connect.user(user)
+        pop_connect.pass_(password)
+
+        # print('Messages: %s. Size: %s' % pop_connect.stat())
+
+        # 服务器返回信息，消息列表，返回信息的大小。
+        number = len(pop_connect.list()[1])
+        # 检索所有邮件
+        if number>=1:
+            print number,'emails'
+            for index in range (number,number+1):
+                # 获取第一封邮件信息
+                msglines = pop_connect.retr(index)[1]
+                # 可以获得整个邮件的原始文本(重新排版后的):
+                str = b'\r\n'
+                msg_content = str.join(msglines).decode('utf-8')
+
+                # print('\n', msg_content)
+                # 将原始邮件转换为email实例:
+                msg = Parser().parsestr(msg_content)
+                # print('\n', msg)
+                # 获取email主题
+                Subject = get_Subject(msg)
+                print (Subject)
+                # 获取email地址
+                # email_addr = parseaddr(msg.get('From'))[1]
+                # 信息判断
+                result = judge(Subject)
+                # 根据判断结果，执行操作
+                if result == 1:
+                    pop_connect.dele(index)
+                    break
+                    # 登出email
+            pop_connect.quit()
+            return result
+
+    except Exception as e:
+
+
+        print 'Error:',e
+
+
+        # 获取email主题
+
+
+# 主程序，间隔一段时间检索一次邮箱
+def login():
+    global command1
+    global ssl
+    with open('shutdown.txt','r')as fn:
+         s1=fn.read()
+    host = ''.join(re.findall(r'host:(.*)',s1)) #邮箱的服务器
+    if host=='pop.qq.com':
+        ssl=1
+    else:
+        ssl=0
+    user =''.join(re.findall(r'admin:(.*)',s1))#从shutdown 文本中提取用户名
+    password=''.join(re.findall(r'password:(.*)',s1))#从shutdown 文本中提取密码
+    # password='xndyejfdgkfgbdbb'
+    time1=''.join(re.findall(r'looptime:(.*)s',s1))#从shutdown 文本中提取循环时间
+    command1=''.join(re.findall(r'command:(.*)',s1))#从shutdown 文本中提取关机命令
+
+    while 1:
+        result = Check_Subject(host, user, password)
+
+        if result == 1:
+            cmd = 'cmd /k shutdown -l'
+            cmd = 'c:\\windows\\system32\\shutdown -s -t 300'
+            os.system(cmd)
+            break
+
+        time.sleep(float(time1))  # 两次检索邮件的时间间隔60s
+if __name__=='__main__':
+    login()
+
+
+
+
