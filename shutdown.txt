@@ -1,0 +1,5 @@
+host:pop.qq.com
+admin:877413429@qq.com
+password:xndyejfdgkfgbdbb
+looptime:60s
+command:shutdown
